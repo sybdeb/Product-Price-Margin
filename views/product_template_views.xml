@@ -33,40 +33,42 @@
                 </div>
             </xpath>
 
-            <!-- Voeg marge informatie toe aan pricing sectie -->
-            <xpath expr="//page[@name='general_information']//group[@name='pricing']" position="inside">
-                <group string="Marge Berekening" name="margin_calculation">
-                    <field name="margin_config_id" readonly="1"/>
-                    <field name="applicable_margin_percentage" widget="percentage" readonly="1"/>
-                    <field name="calculated_list_price" widget="monetary" 
-                           options="{'currency_field': 'currency_id'}" readonly="1"/>
-                    <button name="action_apply_calculated_price" 
-                            string="Pas Berekende Prijs Toe" 
-                            type="object" 
-                            class="btn-primary"
-                            invisible="not calculated_list_price"
-                            confirm="Weet u zeker dat u de berekende prijs wilt toepassen?"/>
-                </group>
-            </xpath>
-
-            <!-- Voeg custom marge velden toe (voor beheerders) -->
-            <xpath expr="//page[@name='general_information']" position="inside">
-                <group string="Afwijkende Marge (Alleen voor beheerders)" 
-                       name="margin_override" 
-                       invisible="not use_custom_margin"
-                       groups="sales_team.group_sale_manager">
+            <!-- Voeg marge informatie toe als nieuwe pagina -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Marge Berekening" name="margin_calculation">
                     <group>
-                        <field name="use_custom_margin" readonly="1"/>
-                        <field name="custom_margin_percentage" widget="percentage" readonly="1"/>
-                        <field name="margin_override_approved" readonly="1"/>
-                        <field name="margin_override_end_date" readonly="1"/>
+                        <group string="Marge Configuratie">
+                            <field name="margin_config_id" readonly="1"/>
+                            <field name="applicable_margin_percentage" widget="percentage" readonly="1"/>
+                            <field name="calculated_list_price" widget="monetary" 
+                                   options="{'currency_field': 'currency_id'}" readonly="1"/>
+                        </group>
+                        <group>
+                            <button name="action_apply_calculated_price" 
+                                    string="Pas Berekende Prijs Toe" 
+                                    type="object" 
+                                    class="btn-primary"
+                                    invisible="not calculated_list_price"
+                                    confirm="Weet u zeker dat u de berekende prijs wilt toepassen?"/>
+                        </group>
                     </group>
-                    <group>
-                        <field name="margin_override_approved_by" readonly="1"/>
-                        <field name="margin_override_approved_date" readonly="1"/>
-                        <field name="has_margin_deviation" invisible="1"/>
+                    
+                    <group string="Afwijkende Marge (Alleen voor beheerders)" 
+                           invisible="not use_custom_margin"
+                           groups="sales_team.group_sale_manager">
+                        <group>
+                            <field name="use_custom_margin" readonly="1"/>
+                            <field name="custom_margin_percentage" widget="percentage" readonly="1"/>
+                            <field name="margin_override_approved" readonly="1"/>
+                            <field name="margin_override_end_date" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="margin_override_approved_by" readonly="1"/>
+                            <field name="margin_override_approved_date" readonly="1"/>
+                            <field name="has_margin_deviation" invisible="1"/>
+                        </group>
                     </group>
-                </group>
+                </page>
             </xpath>
 
         </field>
