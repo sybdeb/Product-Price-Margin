@@ -89,19 +89,5 @@
               parent="menu_product_margin_root"
               action="action_product_margin_config"
               sequence="10"/>
-    
-    <!-- Menu in Configuration -->
-    <menuitem id="menu_product_margin_config_settings"
-              name="Marge Instellingen"
-              parent="sale.menu_product_config"
-              action="action_product_margin_config"
-              sequence="50"/>
-    
-    <!-- Menu in Webshop Catalog Dashboard -->
-    <menuitem id="menu_webshop_margin_config"
-              name="Marge Instellingen"
-              parent="webshop_catalog_dashboard.menu_webshop_catalog"
-              action="action_product_margin_config"
-              sequence="40"/>
 
 </odoo>
