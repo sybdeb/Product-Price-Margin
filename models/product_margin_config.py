@@ -25,12 +25,7 @@ class ProductMarginConfig(models.Model):
         string='Product Merk',
         ondelete='cascade',
     )
-    public_categ_id = fields.Many2one(
-        'product.public.category',
-        string='Webshop Categorie',
-        ondelete='cascade',
-        check_company=False,
-    )
+    # public_categ_id will be added dynamically if website_sale is installed
     
     # Marge configuratie
     margin_percentage = fields.Float(
