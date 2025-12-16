@@ -29,6 +29,7 @@ class ProductMarginConfig(models.Model):
         'product.public.category',
         string='Webshop Categorie',
         ondelete='cascade',
+        check_company=False,
     )
     
     # Marge configuratie
