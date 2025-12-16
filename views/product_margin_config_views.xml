@@ -50,21 +50,14 @@
     </record>
 
     <!-- Search View -->
-    <record id="view_product_margin_config_search" model="ir.ui.view">
-        <field name="name">product.margin.config.search</field>
+    <record id="product_margin_config_view_search" model="ir.ui.view">
+        <field name="name">product.margin.config.view.search</field>
         <field name="model">product.margin.config</field>
         <field name="arch" type="xml">
-            <search>
-                <field name="name"/>
-                <field name="brand_id"/>
-                <field name="public_categ_id"/>
-                <filter string="Per Merk" name="filter_brand" domain="[('config_type', '=', 'brand')]"/>
-                <filter string="Per Categorie" name="filter_category" domain="[('config_type', '=', 'category')]"/>
-                <filter string="Actief" name="filter_active" domain="[('active', '=', True)]"/>
-                <filter string="Gearchiveerd" name="filter_inactive" domain="[('active', '=', False)]"/>
-                <group expand="0" string="Groepeer Op">
-                    <filter string="Type" name="group_type" context="{'group_by': 'config_type'}"/>
-                </group>
+            <search string="Search Margin Configurations">
+                <field name="name" string="Name"/>
+                <field name="config_type" string="Type"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
             </search>
         </field>
     </record>
@@ -74,7 +67,7 @@
         <field name="name">Marge Configuraties</field>
         <field name="res_model">product.margin.config</field>
         <field name="view_mode">list,form</field>
-        <field name="context">{'search_default_filter_active': 1}</field>
+        <field name="context">{'search_default_active': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Maak uw eerste marge configuratie
