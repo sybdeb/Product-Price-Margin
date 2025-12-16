@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Inherit Public Category Form View to add Margin -->
+    <record id="view_public_category_form_inherit_margin" model="ir.ui.view">
+        <field name="name">product.public.category.form.inherit.margin</field>
+        <field name="model">product.public.category</field>
+        <field name="inherit_id" ref="website_sale.product_public_category_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Marge Configuratie">
+                    <field name="margin_config_id" invisible="1"/>
+                    <field name="margin_percentage"/>
+                    <field name="has_margin_config" invisible="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit Public Category List View -->
+    <record id="view_public_category_tree_inherit_margin" model="ir.ui.view">
+        <field name="name">product.public.category.tree.inherit.margin</field>
+        <field name="model">product.public.category</field>
+        <field name="inherit_id" ref="website_sale.product_public_category_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="margin_percentage" optional="show" widget="percentage"/>
+                <field name="has_margin_config" optional="hide" widget="boolean"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

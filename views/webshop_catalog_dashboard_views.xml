@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Inherit Dashboard Form View -->
+    <record id="view_webshop_catalog_dashboard_form_inherit_margin" model="ir.ui.view">
+        <field name="name">webshop.catalog.dashboard.form.inherit.margin</field>
+        <field name="model">webshop.catalog.dashboard</field>
+        <field name="inherit_id" ref="webshop_catalog_dashboard.view_webshop_catalog_dashboard_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Voeg margin tiles toe na de bestaande tiles -->
+            <xpath expr="//div[hasclass('o_dashboard_view')]" position="inside">
+                
+                <!-- Producten Zonder Marge Config -->
+                <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fa fa-percent fa-2x text-warning me-3"/>
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-0">
+                                        <field name="products_without_margin"/>
+                                    </h5>
+                                    <p class="text-muted mb-0">Zonder marge configuratie</p>
+                                </div>
+                            </div>
+                            <button name="action_view_products_without_margin" 
+                                    type="object" 
+                                    class="btn btn-warning btn-sm w-100">
+                                Bekijk
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Producten Met Afwijkende Marge -->
+                <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fa fa-exclamation-triangle fa-2x text-info me-3"/>
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-0">
+                                        <field name="products_with_deviation"/>
+                                    </h5>
+                                    <p class="text-muted mb-0">Met afwijkende marge</p>
+                                </div>
+                            </div>
+                            <button name="action_view_products_with_deviation" 
+                                    type="object" 
+                                    class="btn btn-info btn-sm w-100">
+                                Bekijk
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
