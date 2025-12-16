@@ -2,12 +2,7 @@
 
 from . import product_margin_config
 from . import product_template
-
-# Optional integrations
-try:
-    from . import product_public_category
-except ImportError:
-    pass
+from . import product_public_category
 
 try:
     from . import webshop_catalog_dashboard
