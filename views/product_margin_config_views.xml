@@ -56,8 +56,8 @@
         <field name="arch" type="xml">
             <search string="Zoek Marge Configuraties">
                 <field name="name"/>
-                <field name="brand_name"/>
-                <field name="category_name"/>
+                <field name="brand_id"/>
+                <field name="public_categ_id"/>
                 <separator/>
                 <filter string="Per Merk" name="filter_brand" domain="[('config_type', '=', 'brand')]"/>
                 <filter string="Per Categorie" name="filter_category" domain="[('config_type', '=', 'category')]"/>
@@ -66,8 +66,8 @@
                 <filter string="Gearchiveerd" name="filter_inactive" domain="[('active', '=', False)]"/>
                 <group expand="0" string="Groepeer Op">
                     <filter string="Type" name="group_type" context="{'group_by': 'config_type'}"/>
-                    <filter string="Merk" name="group_brand" context="{'group_by': 'brand_name'}"/>
-                    <filter string="Categorie" name="group_category" context="{'group_by': 'category_name'}"/>
+                    <filter string="Merk" name="group_brand" context="{'group_by': 'brand_id'}"/>
+                    <filter string="Categorie" name="group_category" context="{'group_by': 'public_categ_id'}"/>
                 </group>
             </search>
         </field>
