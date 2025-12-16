@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_product_margin_config_user,product.margin.config.user,model_product_margin_config,base.group_user,1,0,0,0
+access_product_margin_config_sales,product.margin.config.sales,model_product_margin_config,sales_team.group_sale_salesman,1,1,1,0
+access_product_margin_config_manager,product.margin.config.manager,model_product_margin_config,sales_team.group_sale_manager,1,1,1,1
+access_margin_override_wizard_user,margin.override.wizard.user,model_margin_override_wizard,sales_team.group_sale_salesman,1,1,1,1

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Product Template Form View Inherit -->
+    <record id="view_product_template_form_inherit_margin" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.margin</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            
+            <!-- Voeg button toe aan button box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_request_margin_override"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-percent"
+                        invisible="not margin_config_id"
+                        help="Vraag een afwijkende marge aan voor dit product">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="applicable_margin_percentage" widget="percentage"/>
+                        </span>
+                        <span class="o_stat_text">Marge %</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <!-- Voeg warning toe bij afwijkende marge -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-warning" role="alert" invisible="not has_margin_deviation">
+                    <strong><i class="fa fa-warning"/> Afwijkende Marge Actief</strong>
+                    <p><field name="margin_deviation_warning" readonly="1"/></p>
+                </div>
+            </xpath>
+
+            <!-- Voeg marge informatie toe aan pricing sectie -->
+            <xpath expr="//page[@name='general_information']//group[@name='pricing']" position="inside">
+                <group string="Marge Berekening" name="margin_calculation">
+                    <field name="margin_config_id" readonly="1"/>
+                    <field name="applicable_margin_percentage" widget="percentage" readonly="1"/>
+                    <field name="calculated_list_price" widget="monetary" 
+                           options="{'currency_field': 'currency_id'}" readonly="1"/>
+                    <button name="action_apply_calculated_price" 
+                            string="Pas Berekende Prijs Toe" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="not calculated_list_price"
+                            confirm="Weet u zeker dat u de berekende prijs wilt toepassen?"/>
+                </group>
+            </xpath>
+
+            <!-- Voeg custom marge velden toe (voor beheerders) -->
+            <xpath expr="//page[@name='general_information']" position="inside">
+                <group string="Afwijkende Marge (Alleen voor beheerders)" 
+                       name="margin_override" 
+                       invisible="not use_custom_margin"
+                       groups="sales_team.group_sale_manager">
+                    <group>
+                        <field name="use_custom_margin" readonly="1"/>
+                        <field name="custom_margin_percentage" widget="percentage" readonly="1"/>
+                        <field name="margin_override_approved" readonly="1"/>
+                        <field name="margin_override_end_date" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="margin_override_approved_by" readonly="1"/>
+                        <field name="margin_override_approved_date" readonly="1"/>
+                        <field name="has_margin_deviation" invisible="1"/>
+                    </group>
+                </group>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Product Template Tree View Inherit -->
+    <record id="view_product_template_tree_inherit_margin" model="ir.ui.view">
+        <field name="name">product.template.tree.inherit.margin</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='list_price']" position="after">
+                <field name="applicable_margin_percentage" optional="show" widget="percentage"/>
+                <field name="calculated_list_price" optional="hide" widget="monetary"/>
+                <field name="has_margin_deviation" optional="hide" widget="boolean"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Product Template Search View Inherit -->
+    <record id="view_product_template_search_inherit_margin" model="ir.ui.view">
+        <field name="name">product.template.search.inherit.margin</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='inactive']" position="after">
+                <separator/>
+                <filter string="Met Afwijkende Marge" name="filter_margin_deviation" 
+                        domain="[('has_margin_deviation', '=', True)]"/>
+                <filter string="Zonder Marge Config" name="filter_no_margin_config" 
+                        domain="[('margin_config_id', '=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
