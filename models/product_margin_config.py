@@ -9,25 +9,29 @@ class ProductMarginConfig(models.Model):
     _description = 'Product Margin Configuration'
     _order = 'sequence, name'
 
+    def _get_config_type_selection(self):
+        """Dynamisch de config_type opties bepalen op basis van geïnstalleerde modules"""
+        options = [('brand', 'Per Merk')]
+        if 'product.public.category' in self.env:
+            options.append(('category', 'Per Webshop Categorie'))
+        return options
+
     name = fields.Char(string='Naam', required=True)
     sequence = fields.Integer(string='Volgorde', default=10)
     active = fields.Boolean(string='Actief', default=True)
     
     # Type configuratie
-    config_type = fields.Selection([
-        ('brand', 'Per Merk'),
-        ('category', 'Per Webshop Categorie'),
-    ], string='Type', required=True, default='brand')
+    config_type = fields.Selection(
+        selection='_get_config_type_selection',
+        string='Type', 
+        required=True, 
+        default='brand'
+    )
     
     # Relaties
     brand_id = fields.Many2one(
         'product.brand',
         string='Product Merk',
-        ondelete='cascade',
-    )
-    public_categ_id = fields.Many2one(
-        'product.public.category',
-        string='Webshop Categorie',
         ondelete='cascade',
     )
     
@@ -40,16 +44,39 @@ class ProductMarginConfig(models.Model):
     
     # Computed velden voor display
     brand_name = fields.Char(related='brand_id.name', string='Merk', store=True)
-    category_name = fields.Char(related='public_categ_id.name', string='Categorie', store=True)
+    category_name = fields.Char(string='Categorie', store=True, compute='_compute_category_name')
 
-    @api.constrains('config_type', 'brand_id', 'public_categ_id')
+    @api.model
+    def _auto_init(self):
+        """Voeg public_categ_id field toe als website_sale geïnstalleerd is"""
+        if 'product.public.category' in self.env:
+            self._add_field('public_categ_id', fields.Many2one(
+                'product.public.category',
+                string='Webshop Categorie',
+                ondelete='cascade',
+            ))
+        return super()._auto_init()
+
+    @api.depends('public_categ_id')
+    def _compute_category_name(self):
+        """Compute category name if field exists"""
+        for record in self:
+            if hasattr(record, 'public_categ_id') and record.public_categ_id:
+                record.category_name = record.public_categ_id.name
+            else:
+                record.category_name = False
+
+    @api.constrains('config_type', 'brand_id')
     def _check_config_consistency(self):
         """Controleer dat de juiste velden zijn ingevuld per type"""
         for record in self:
             if record.config_type == 'brand' and not record.brand_id:
                 raise ValidationError(_('Voor type "Per Merk" moet een merk geselecteerd worden.'))
-            if record.config_type == 'category' and not record.public_categ_id:
-                raise ValidationError(_('Voor type "Per Webshop Categorie" moet een categorie geselecteerd worden.'))
+            if record.config_type == 'category':
+                if not hasattr(record, 'public_categ_id'):
+                    raise ValidationError(_('Webshop categorieën zijn niet beschikbaar. Installeer website_sale module.'))
+                if not record.public_categ_id:
+                    raise ValidationError(_('Voor type "Per Webshop Categorie" moet een categorie geselecteerd worden.'))
     
     @api.constrains('margin_percentage')
     def _check_margin_percentage(self):
@@ -58,7 +85,7 @@ class ProductMarginConfig(models.Model):
             if record.margin_percentage < 0:
                 raise ValidationError(_('Marge percentage moet positief zijn.'))
     
-    @api.constrains('brand_id', 'public_categ_id')
+    @api.constrains('brand_id')
     def _check_unique_config(self):
         """Voorkom dubbele configuraties voor hetzelfde merk of categorie"""
         for record in self:
@@ -68,7 +95,7 @@ class ProductMarginConfig(models.Model):
                     raise ValidationError(
                         _('Er bestaat al een actieve marge configuratie voor merk "%s".') % record.brand_id.name
                     )
-            if record.public_categ_id:
+            if hasattr(record, 'public_categ_id') and record.public_categ_id:
                 domain = [('id', '!=', record.id), ('active', '=', True), ('public_categ_id', '=', record.public_categ_id.id)]
                 if self.search(domain, limit=1):
                     raise ValidationError(
