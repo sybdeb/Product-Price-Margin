@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     
-    <!-- Tree View -->
+    <!-- List View -->
     <record id="view_product_margin_config_tree" model="ir.ui.view">
         <field name="name">product.margin.config.tree</field>
         <field name="model">product.margin.config</field>
         <field name="arch" type="xml">
-            <tree string="Marge Configuraties">
+            <list string="Marge Configuraties">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="config_type"/>
@@ -14,7 +14,7 @@
                 <field name="category_name" optional="show"/>
                 <field name="margin_percentage" decoration-info="margin_percentage &gt; 0"/>
                 <field name="active" widget="boolean_toggle"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -77,7 +77,7 @@
     <record id="action_product_margin_config" model="ir.actions.act_window">
         <field name="name">Marge Configuraties</field>
         <field name="res_model">product.margin.config</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="context">{'search_default_filter_active': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
