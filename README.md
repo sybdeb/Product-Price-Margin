@@ -158,13 +158,24 @@ Voor vragen of problemen:
 - Bekijk de log berichten op het product
 - Controleer de scheduled action logs
 
+## Pricing
+
+Deze module is commercieel beschikbaar. Zie [PRICING.md](PRICING.md) voor prijsinformatie en licentie opties.
+
+**Korte samenvatting:**
+- Standalone: €149 eenmalig
+- Bundle (3 modules): €349 (bespaar €48)
+- Subscription: €15/maand
+
+Contact: sybren@nerbys.nl
+
 ## Licentie
 
-LGPL-3
+LGPL-3 - Source code is beschikbaar, commercieel gebruik vereist licentie.
 
 ## Auteur
 
-Sybren
+Sybren - Nerbys.nl
 
 ## Versie
 
