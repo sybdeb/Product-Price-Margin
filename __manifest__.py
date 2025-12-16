@@ -37,8 +37,6 @@ Features:
         'data/ir_cron.xml',
     ],
     'demo': [],
-    'post_init_hook': 'post_init_hook',
-    'post_load': None,
     'installable': True,
     'application': False,
     'auto_install': False,

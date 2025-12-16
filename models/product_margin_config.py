@@ -16,7 +16,6 @@ class ProductMarginConfig(models.Model):
     # Type configuratie
     config_type = fields.Selection([
         ('brand', 'Per Merk'),
-        ('category', 'Per Webshop Categorie'),
     ], string='Type', required=True, default='brand')
     
     # Relaties
@@ -25,7 +24,6 @@ class ProductMarginConfig(models.Model):
         string='Product Merk',
         ondelete='cascade',
     )
-    # public_categ_id will be added dynamically if website_sale is installed
     
     # Marge configuratie
     margin_percentage = fields.Float(
@@ -38,14 +36,12 @@ class ProductMarginConfig(models.Model):
     brand_name = fields.Char(related='brand_id.name', string='Merk', store=True)
     category_name = fields.Char(related='public_categ_id.name', string='Categorie', store=True)
 
-    @api.constrains('config_type', 'brand_id', 'public_categ_id')
+    @api.constrains('config_type', 'brand_id')
     def _check_config_consistency(self):
         """Controleer dat de juiste velden zijn ingevuld per type"""
         for record in self:
             if record.config_type == 'brand' and not record.brand_id:
                 raise ValidationError(_('Voor type "Per Merk" moet een merk geselecteerd worden.'))
-            if record.config_type == 'category' and not record.public_categ_id:
-                raise ValidationError(_('Voor type "Per Webshop Categorie" moet een categorie geselecteerd worden.'))
     
     @api.constrains('margin_percentage')
     def _check_margin_percentage(self):
@@ -54,31 +50,21 @@ class ProductMarginConfig(models.Model):
             if record.margin_percentage < 0:
                 raise ValidationError(_('Marge percentage moet positief zijn.'))
     
-    @api.constrains('brand_id', 'public_categ_id')
+    @api.constrains('brand_id')
     def _check_unique_config(self):
-        """Voorkom dubbele configuraties voor hetzelfde merk of categorie"""
+        """Voorkom dubbele configuraties voor hetzelfde merk"""
         for record in self:
-            domain = [('id', '!=', record.id), ('active', '=', True)]
-            if record.config_type == 'brand' and record.brand_id:
-                domain.append(('brand_id', '=', record.brand_id.id))
+            if record.brand_id:
+                domain = [('id', '!=', record.id), ('active', '=', True), ('brand_id', '=', record.brand_id.id)]
                 if self.search(domain, limit=1):
                     raise ValidationError(
                         _('Er bestaat al een actieve marge configuratie voor merk "%s".') % record.brand_id.name
-                    )
-            elif record.config_type == 'category' and record.public_categ_id:
-                domain.append(('public_categ_id', '=', record.public_categ_id.id))
-                if self.search(domain, limit=1):
-                    raise ValidationError(
-                        _('Er bestaat al een actieve marge configuratie voor categorie "%s".') % record.public_categ_id.name
                     )
     
     def name_get(self):
         """Custom display name"""
         result = []
         for record in self:
-            if record.config_type == 'brand':
-                name = f"{record.brand_name} - {record.margin_percentage}%"
-            else:
-                name = f"{record.category_name} - {record.margin_percentage}%"
+            name = f"{record.brand_name} - {record.margin_percentage}%"
             result.append((record.id, name))
         return result
