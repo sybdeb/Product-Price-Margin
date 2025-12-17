@@ -3,6 +3,17 @@
 from odoo import models, fields, api
 
 
+class ProductMarginConfig(models.Model):
+    \"\"\"Extend ProductMarginConfig to add public_categ_id field when website_sale is installed\"\"\"
+    _inherit = 'product.margin.config'
+    
+    public_categ_id = fields.Many2one(
+        'product.public.category',
+        string='Webshop Categorie',
+        ondelete='cascade',
+    )
+
+
 class ProductPublicCategory(models.Model):
     _inherit = 'product.public.category'
 

@@ -34,6 +34,7 @@ class ProductMarginConfig(models.Model):
         string='Product Merk',
         ondelete='cascade',
     )
+    # Note: public_categ_id is added via product_public_category.py when website_sale is installed
     
     # Marge configuratie
     margin_percentage = fields.Float(
@@ -44,18 +45,7 @@ class ProductMarginConfig(models.Model):
     
     # Computed velden voor display
     brand_name = fields.Char(related='brand_id.name', string='Merk', store=True)
-    category_name = fields.Char(string='Categorie', store=True, compute='_compute_category_name')
-
-    @api.model
-    def _auto_init(self):
-        """Voeg public_categ_id field toe als website_sale geïnstalleerd is"""
-        if 'product.public.category' in self.env:
-            self._add_field('public_categ_id', fields.Many2one(
-                'product.public.category',
-                string='Webshop Categorie',
-                ondelete='cascade',
-            ))
-        return super()._auto_init()
+    category_name = fields.Char(string='Categorie', compute='_compute_category_name', store=True)
 
     @api.depends('public_categ_id')
     def _compute_category_name(self):
