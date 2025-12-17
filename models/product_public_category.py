@@ -12,6 +12,7 @@ class ProductMarginConfig(models.Model):
         string='Webshop Categorie',
         ondelete='cascade',
     )
+    category_name = fields.Char(related='public_categ_id.name', string='Categorie', store=True)
 
 
 class ProductPublicCategory(models.Model):

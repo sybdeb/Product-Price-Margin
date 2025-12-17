@@ -11,6 +11,7 @@
                 <field name="name"/>
                 <field name="config_type"/>
                 <field name="brand_name" optional="show"/>
+                <field name="category_name" optional="show"/>
                 <field name="margin_percentage" decoration-info="margin_percentage &gt; 0"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>

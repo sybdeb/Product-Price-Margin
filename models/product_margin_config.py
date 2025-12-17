@@ -86,8 +86,10 @@ class ProductMarginConfig(models.Model):
         """Custom display name"""
         result = []
         for record in self:
-            if record.brand_name:
+            if record.config_type == 'brand' and record.brand_name:
                 name = f"{record.brand_name} - {record.margin_percentage}%"
+            elif hasattr(record, 'category_name') and record.category_name:
+                name = f"{record.category_name} - {record.margin_percentage}%"
             else:
                 name = f"{record.name} - {record.margin_percentage}%"
             result.append((record.id, name))
