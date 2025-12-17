@@ -45,16 +45,6 @@ class ProductMarginConfig(models.Model):
     
     # Computed velden voor display
     brand_name = fields.Char(related='brand_id.name', string='Merk', store=True)
-    category_name = fields.Char(string='Categorie', compute='_compute_category_name', store=True)
-
-    @api.depends('public_categ_id')
-    def _compute_category_name(self):
-        """Compute category name if field exists"""
-        for record in self:
-            if hasattr(record, 'public_categ_id') and record.public_categ_id:
-                record.category_name = record.public_categ_id.name
-            else:
-                record.category_name = False
 
     @api.constrains('config_type', 'brand_id')
     def _check_config_consistency(self):
@@ -96,9 +86,9 @@ class ProductMarginConfig(models.Model):
         """Custom display name"""
         result = []
         for record in self:
-            if record.config_type == 'brand':
+            if record.brand_name:
                 name = f"{record.brand_name} - {record.margin_percentage}%"
             else:
-                name = f"{record.category_name} - {record.margin_percentage}%"
+                name = f"{record.name} - {record.margin_percentage}%"
             result.append((record.id, name))
         return result
