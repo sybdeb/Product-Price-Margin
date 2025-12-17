@@ -21,9 +21,9 @@
         <field name="model">product.public.category</field>
         <field name="inherit_id" ref="website_sale.product_public_category_tree_view"/>
         <field name="arch" type="xml">
-            <tree position="inside">
+            <list position="inside">
                 <field name="margin_percentage" optional="show" widget="percentage"/>
-            </tree>
+            </list>
         </field>
     </record>
 
