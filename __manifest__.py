@@ -28,6 +28,7 @@ Features:
         'product',
         'product_brand',
         'sale',
+        'website_sale',
     ],
     'data': [
         'security/ir.model.access.csv',
