@@ -33,7 +33,6 @@ Features:
         'security/ir.model.access.csv',
         'views/product_margin_config_views.xml',
         'views/product_template_views.xml',
-        'views/product_public_category_views.xml',
         'wizard/margin_override_wizard_views.xml',
         'data/ir_cron.xml',
     ],
