@@ -43,6 +43,17 @@
                             <field name="calculated_list_price" widget="monetary" 
                                    options="{'currency_field': 'currency_id'}" readonly="1"/>
                         </group>
+                        <group string="Inkoopprijs Bron">
+                            <field name="preferred_supplier_id" options="{'no_create': True}"/>
+                            <field name="use_manual_preferred_supplier"/>
+                            <label for="qty_available" string="Eigen Voorraad"/>
+                            <div>
+                                <field name="qty_available" class="oe_inline"/> stuks
+                                <span class="text-muted" invisible="qty_available &lt;= 0"> (gebruikt voorraad inkoopwaarde)</span>
+                            </div>
+                        </group>
+                    </group>
+                    <group>
                         <group>
                             <button name="action_recalculate_price" 
                                     string="Herbereken Prijs" 
