@@ -183,13 +183,14 @@ class ProductTemplate(models.Model):
             purchase_price = product._get_purchase_price()
             
             if purchase_price and product.applicable_margin_percentage:
-                if product.applicable_margin_percentage < 100:
-                    # Normale marge formule: verkoop = inkoop / (1 - marge/100)
-                    product.calculated_list_price = purchase_price / (1 - product.applicable_margin_percentage / 100)
+                if product.applicable_margin_percentage < 1.0:
+                    # Normale marge formule voor < 100% (opgeslagen als < 1.0)
+                    # verkoop = inkoop / (1 - marge)
+                    product.calculated_list_price = purchase_price / (1 - product.applicable_margin_percentage)
                 else:
-                    # Hoge percentages: gebruik markup formule
-                    # 200% = 3x inkoopprijs, 300% = 4x inkoopprijs, etc.
-                    product.calculated_list_price = purchase_price * (1 + product.applicable_margin_percentage / 100)
+                    # Hoge percentages >= 100% (opgeslagen als >= 1.0): markup formule
+                    # 2.0 = 3x inkoopprijs, 3.0 = 4x inkoopprijs
+                    product.calculated_list_price = purchase_price * (1 + product.applicable_margin_percentage)
             else:
                 product.calculated_list_price = purchase_price
 

@@ -122,13 +122,16 @@ class MarginOverrideWizard(models.TransientModel):
         """
         for wizard in self:
             if wizard.current_purchase_price and wizard.requested_margin is not False:
-                if wizard.requested_margin < 100:
-                    # Normale marge formule: verkoop = inkoop / (1 - marge/100)
-                    wizard.calculated_new_price = wizard.current_purchase_price / (1 - wizard.requested_margin / 100)
+                # requested_margin wordt ingevoerd als percentage (25 = 25%)
+                # maar opgeslagen als decimaal (0.25)
+                margin_decimal = wizard.requested_margin / 100 if wizard.requested_margin >= 1 else wizard.requested_margin
+                
+                if margin_decimal < 1.0:
+                    # Normale marge formule: verkoop = inkoop / (1 - marge)
+                    wizard.calculated_new_price = wizard.current_purchase_price / (1 - margin_decimal)
                 else:
                     # Hoge percentages: gebruik markup formule
-                    # 200% = 3x inkoopprijs, 300% = 4x inkoopprijs, etc.
-                    wizard.calculated_new_price = wizard.current_purchase_price * (1 + wizard.requested_margin / 100)
+                    wizard.calculated_new_price = wizard.current_purchase_price * (1 + margin_decimal)
                 
                 wizard.price_difference = wizard.calculated_new_price - wizard.current_sale_price
                 
