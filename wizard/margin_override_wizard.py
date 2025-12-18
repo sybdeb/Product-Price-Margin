@@ -58,6 +58,15 @@ class MarginOverrideWizard(models.TransientModel):
         compute='_compute_calculated_new_price',
         help='De verkoopprijs die resulteert uit de gewenste marge'
     )
+    manual_price = fields.Float(
+        string='Handmatige Verkoopprijs',
+        help='Vul hier handmatig een verkoopprijs in om de berekende prijs te overschrijven'
+    )
+    final_price = fields.Float(
+        string='Toe te Passen Verkoopprijs',
+        compute='_compute_final_price',
+        help='De prijs die uiteindelijk wordt toegepast (handmatig of berekend)'
+    )
     price_difference = fields.Float(
         string='Prijsverschil',
         compute='_compute_calculated_new_price',
@@ -131,6 +140,15 @@ class MarginOverrideWizard(models.TransientModel):
                 wizard.price_difference = 0.0
                 wizard.price_difference_percentage = 0.0
 
+    @api.depends('manual_price', 'calculated_new_price')
+    def _compute_final_price(self):
+        """Bepaal de uiteindelijk toe te passen prijs: handmatig of berekend"""
+        for wizard in self:
+            if wizard.manual_price and wizard.manual_price > 0:
+                wizard.final_price = wizard.manual_price
+            else:
+                wizard.final_price = wizard.calculated_new_price
+
     @api.constrains('requested_margin')
     def _check_requested_margin(self):
         """Valideer dat de gewenste marge redelijk is"""
@@ -185,9 +203,9 @@ class MarginOverrideWizard(models.TransientModel):
             )
         )
         
-        # Optioneel: pas de berekende prijs direct toe
-        if self.calculated_new_price:
-            self.product_id.list_price = self.calculated_new_price
+        # Pas de finale prijs direct toe (handmatig of berekend)
+        if self.final_price:
+            self.product_id.list_price = self.final_price
         
         return {
             'type': 'ir.actions.client',

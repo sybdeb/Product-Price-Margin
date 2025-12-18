@@ -23,12 +23,14 @@
                 
                 <group string="Berekende Nieuwe Prijzen">
                     <group>
-                        <field name="calculated_new_price" widget="monetary"/>
+                        <field name="calculated_new_price" widget="monetary" readonly="1"/>
+                        <field name="manual_price" widget="monetary" placeholder="Optioneel: vul handmatig in om berekening te overschrijven"/>
+                        <field name="final_price" widget="monetary" readonly="1" class="fw-bold"/>
+                    </group>
+                    <group>
                         <field name="price_difference" widget="monetary" 
                                decoration-danger="price_difference &lt; 0"
                                decoration-success="price_difference &gt; 0"/>
-                    </group>
-                    <group>
                         <field name="price_difference_percentage" widget="percentage"
                                decoration-danger="price_difference_percentage &lt; -10"
                                decoration-warning="price_difference_percentage &lt; 0 and price_difference_percentage &gt;= -10"
