@@ -44,11 +44,15 @@
                                    options="{'currency_field': 'currency_id'}" readonly="1"/>
                         </group>
                         <group>
+                            <button name="action_recalculate_price" 
+                                    string="Herbereken Prijs" 
+                                    type="object" 
+                                    class="btn-secondary"
+                                    help="Forceer herberekening van de verkoopprijs"/>
                             <button name="action_apply_calculated_price" 
                                     string="Pas Berekende Prijs Toe" 
                                     type="object" 
                                     class="btn-primary"
-                                    invisible="not calculated_list_price"
                                     confirm="Weet u zeker dat u de berekende prijs wilt toepassen?"/>
                         </group>
                     </group>

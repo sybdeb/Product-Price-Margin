@@ -125,7 +125,7 @@ class ProductTemplate(models.Model):
             else:
                 product.applicable_margin_percentage = 0.0
 
-    @api.depends('standard_price', 'seller_ids', 'seller_ids.price', 'applicable_margin_percentage')
+    @api.depends('standard_price', 'applicable_margin_percentage')
     def _compute_calculated_list_price(self):
         """Bereken de verkoopprijs op basis van inkoopprijs en marge
         
@@ -156,13 +156,21 @@ class ProductTemplate(models.Model):
         """Helper: bepaal de inkoopprijs (eerst van leverancier, anders standard_price)"""
         self.ensure_one()
         
+        purchase_price = 0.0
+        
         # Probeer eerst leveranciersprijs te krijgen
         if self.seller_ids:
             # Neem de eerste (goedkoopste/belangrijkste) leverancier
-            return self.seller_ids[0].price
+            supplier = self.seller_ids[0]
+            # Check of er een prijs is en gebruik die
+            if supplier.price and supplier.price > 0:
+                purchase_price = supplier.price
         
         # Als geen leveranciersprijs, gebruik standard_price
-        return self.standard_price
+        if not purchase_price or purchase_price == 0:
+            purchase_price = self.standard_price
+        
+        return purchase_price
 
     @api.depends('use_custom_margin', 'margin_override_approved', 'margin_override_end_date')
     def _compute_margin_deviation(self):
@@ -202,11 +210,37 @@ class ProductTemplate(models.Model):
             else:
                 product.margin_deviation_warning = False
 
+    def write(self, vals):
+        """Override write om automatisch prijs te herberekenen bij relevante wijzigingen"""
+        result = super(ProductTemplate, self).write(vals)
+        
+        # Als standard_price of margin gerelateerde velden wijzigen, herbereken prijs
+        if any(field in vals for field in ['standard_price', 'applicable_margin_percentage', 
+                                            'use_custom_margin', 'custom_margin_percentage']):
+            for product in self:
+                # Alleen automatisch toepassen als product al een prijs heeft en een marge config
+                if product.calculated_list_price and product.applicable_margin_percentage:
+                    product.list_price = product.calculated_list_price
+        
+        return result
+
+    def action_recalculate_price(self):
+        """Forceer herberekening van de prijs"""
+        for product in self:
+            product._compute_margin_config()
+            product._compute_applicable_margin()
+            product._compute_calculated_list_price()
+        return True
+
     def action_apply_calculated_price(self):
         """Pas de berekende prijs toe als verkoopprijs"""
         for product in self:
+            # Forceer eerst herberekening
+            product.action_recalculate_price()
             if product.calculated_list_price:
                 product.list_price = product.calculated_list_price
+            else:
+                raise UserError(_('Kan geen prijs berekenen. Controleer of er een inkoopprijs en marge is ingesteld.'))
 
     def action_request_margin_override(self):
         """Open wizard voor aanvragen marge afwijking"""
@@ -246,5 +280,65 @@ class ProductTemplate(models.Model):
             # Herbereken prijs
             product._compute_applicable_margin()
             product._compute_calculated_list_price()
+        
+        return True
+
+    def cron_recalculate_product_prices(self):
+        """Scheduled action om alle productprijzen te herberekenen (elk uur)"""
+        # Zoek alle producten met een marge configuratie en een inkoopprijs
+        products = self.search([
+            ('applicable_margin_percentage', '>', 0),
+            '|',
+            ('standard_price', '>', 0),
+            ('seller_ids', '!=', False)
+        ])
+        
+        for product in products:
+            # Forceer herberekening
+            product._compute_calculated_list_price()
+            
+            # Pas automatisch toe als er al een prijs was
+            if product.calculated_list_price and product.list_price > 0:
+                product.list_price = product.calculated_list_price
+        
+        return True
+
+    def cron_recalculate_product_prices(self):
+        """Scheduled action om alle productprijzen te herberekenen (elk uur)"""
+        # Zoek alle producten met een marge configuratie en een inkoopprijs
+        products = self.search([
+            ('applicable_margin_percentage', '>', 0),
+            '|',
+            ('standard_price', '>', 0),
+            ('seller_ids', '!=', False)
+        ])
+        
+        for product in products:
+            # Forceer herberekening
+            product._compute_calculated_list_price()
+            
+            # Pas automatisch toe als er al een prijs was
+            if product.calculated_list_price and product.list_price > 0:
+                product.list_price = product.calculated_list_price
+        
+        return True
+
+    def cron_recalculate_product_prices(self):
+        """Scheduled action om alle productprijzen te herberekenen (elk uur)"""
+        # Zoek alle producten met een marge configuratie en een inkoopprijs
+        products = self.search([
+            ('applicable_margin_percentage', '>', 0),
+            '|',
+            ('standard_price', '>', 0),
+            ('seller_ids', '!=', False)
+        ])
+        
+        for product in products:
+            # Forceer herberekening
+            product._compute_calculated_list_price()
+            
+            # Pas automatisch toe als er al een prijs was
+            if product.calculated_list_price and product.list_price > 0:
+                product.list_price = product.calculated_list_price
         
         return True
