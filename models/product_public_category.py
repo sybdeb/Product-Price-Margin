@@ -12,7 +12,7 @@ class ProductMarginConfig(models.Model):
         string='Webshop Categorie',
         ondelete='cascade',
     )
-    category_name = fields.Char(related='public_categ_id.name', string='Categorie', store=True)
+    category_name = fields.Char(related='public_categ_id.name', string='Categorie', store=False)  # Odoo19: stored related translated fields not supported
 
 
 class ProductPublicCategory(models.Model):

@@ -44,7 +44,7 @@ class ProductMarginConfig(models.Model):
     )
     
     # Computed velden voor display
-    brand_name = fields.Char(related='brand_id.name', string='Merk', store=True)
+    brand_name = fields.Char(related='brand_id.name', string='Merk', store=False)  # Odoo19: stored related translated fields not supported
 
     @api.constrains('config_type', 'brand_id')
     def _check_config_consistency(self):
