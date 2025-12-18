@@ -153,18 +153,34 @@ class ProductTemplate(models.Model):
                 product.calculated_list_price = purchase_price
 
     def _get_purchase_price(self):
-        """Helper: bepaal de inkoopprijs (eerst van leverancier, anders standard_price)"""
+        """Helper: bepaal de inkoopprijs (eerst van leverancier, anders standard_price)
+        
+        Selectie logica:
+        1. Zoek goedkoopste leverancier waar min_qty <= 5 (je kunt minimaal 5 bestellen)
+        2. Als geen geschikte leverancier, neem goedkoopste beschikbare
+        3. Als geen leveranciers, gebruik standard_price
+        """
         self.ensure_one()
         
         purchase_price = 0.0
         
         # Probeer eerst leveranciersprijs te krijgen
         if self.seller_ids:
-            # Neem de eerste (goedkoopste/belangrijkste) leverancier
-            supplier = self.seller_ids[0]
-            # Check of er een prijs is en gebruik die
-            if supplier.price and supplier.price > 0:
-                purchase_price = supplier.price
+            # Filter leveranciers met prijs > 0
+            valid_suppliers = self.seller_ids.filtered(lambda s: s.price and s.price > 0)
+            
+            if valid_suppliers:
+                # Sorteer op prijs (goedkoopste eerst)
+                sorted_suppliers = valid_suppliers.sorted(key=lambda s: s.price)
+                
+                # Zoek eerst leverancier waar min_qty <= 5 (je kunt minstens 5 stuks bestellen)
+                suitable_suppliers = sorted_suppliers.filtered(lambda s: s.min_qty <= 5)
+                
+                if suitable_suppliers:
+                    purchase_price = suitable_suppliers[0].price
+                else:
+                    # Anders pak gewoon de goedkoopste
+                    purchase_price = sorted_suppliers[0].price
         
         # Als geen leveranciersprijs, gebruik standard_price
         if not purchase_price or purchase_price == 0:
