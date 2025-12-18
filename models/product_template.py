@@ -69,6 +69,47 @@ class ProductTemplate(models.Model):
         compute='_compute_margin_deviation',
         store=True
     )
+    
+    # Voorkeur leverancier
+    preferred_supplier_id = fields.Many2one(
+        'product.supplierinfo',
+        string='Voorkeur Leverancier',
+        compute='_compute_preferred_supplier',
+        store=True,
+        readonly=False,  # Kan handmatig overschreven worden
+        help='Automatisch de goedkoopste leverancier met minimaal 5 stuks voorraad, of handmatig ingesteld'
+    )
+    use_manual_preferred_supplier = fields.Boolean(
+        string='Handmatige Voorkeur Leverancier',
+        default=False,
+        help='Vink aan om automatische selectie te overrulen'
+    )
+
+    @api.depends('seller_ids', 'seller_ids.price', 'seller_ids.supplier_stock', 'use_manual_preferred_supplier')
+    def _compute_preferred_supplier(self):
+        """Bepaal automatisch de voorkeur leverancier: goedkoopste met minimaal 5 stuks voorraad"""
+        for product in self:
+            # Skip als handmatig ingesteld
+            if product.use_manual_preferred_supplier and product.preferred_supplier_id:
+                continue
+                
+            if product.seller_ids:
+                # Filter leveranciers met prijs en minimaal 5 stuks voorraad
+                suitable_suppliers = product.seller_ids.filtered(
+                    lambda s: s.price > 0 and s.supplier_stock >= 5
+                )
+                
+                # Als geen leverancier met voldoende voorraad, neem alle met prijs
+                if not suitable_suppliers:
+                    suitable_suppliers = product.seller_ids.filtered(lambda s: s.price > 0)
+                
+                # Sorteer op prijs en pak de goedkoopste
+                if suitable_suppliers:
+                    product.preferred_supplier_id = suitable_suppliers.sorted(key=lambda s: s.price)[0]
+                else:
+                    product.preferred_supplier_id = False
+            else:
+                product.preferred_supplier_id = False
 
     @api.depends('product_brand_id', 'public_categ_ids')
     def _compute_margin_config(self):
@@ -153,36 +194,29 @@ class ProductTemplate(models.Model):
                 product.calculated_list_price = purchase_price
 
     def _get_purchase_price(self):
-        """Helper: bepaal de inkoopprijs (eerst van leverancier, anders standard_price)
+        """Helper: bepaal de inkoopprijs
         
-        Selectie logica:
-        1. Zoek goedkoopste leverancier waar min_qty <= 5 (je kunt minimaal 5 bestellen)
-        2. Als geen geschikte leverancier, neem goedkoopste beschikbare
-        3. Als geen leveranciers, gebruik standard_price
+        Logica:
+        1. Als er eigen voorraad is (qty_available > 0) → gebruik voorraad waarde / qty
+        2. Als voorkeur leverancier ingesteld → gebruik die prijs
+        3. Anders fallback naar standard_price
         """
         self.ensure_one()
         
         purchase_price = 0.0
         
-        # Probeer eerst leveranciersprijs te krijgen
-        if self.seller_ids:
-            # Filter leveranciers met prijs > 0
-            valid_suppliers = self.seller_ids.filtered(lambda s: s.price and s.price > 0)
-            
-            if valid_suppliers:
-                # Sorteer op prijs (goedkoopste eerst)
-                sorted_suppliers = valid_suppliers.sorted(key=lambda s: s.price)
-                
-                # Zoek eerst leverancier waar min_qty <= 5 (je kunt minstens 5 stuks bestellen)
-                suitable_suppliers = sorted_suppliers.filtered(lambda s: s.min_qty <= 5)
-                
-                if suitable_suppliers:
-                    purchase_price = suitable_suppliers[0].price
-                else:
-                    # Anders pak gewoon de goedkoopste
-                    purchase_price = sorted_suppliers[0].price
+        # Check eerst of er eigen voorraad is
+        if hasattr(self, 'qty_available') and self.qty_available > 0:
+            # Gebruik de gemiddelde inkoopwaarde van de voorraad
+            if hasattr(self, 'stock_value') and self.stock_value > 0:
+                purchase_price = self.stock_value / self.qty_available
+                return purchase_price
         
-        # Als geen leveranciersprijs, gebruik standard_price
+        # Als geen voorraad, gebruik voorkeur leverancier
+        if self.preferred_supplier_id and self.preferred_supplier_id.price > 0:
+            purchase_price = self.preferred_supplier_id.price
+        
+        # Fallback naar standard_price
         if not purchase_price or purchase_price == 0:
             purchase_price = self.standard_price
         
