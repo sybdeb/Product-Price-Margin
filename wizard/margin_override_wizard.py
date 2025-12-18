@@ -100,10 +100,26 @@ class MarginOverrideWizard(models.TransientModel):
 
     @api.depends('requested_margin', 'current_purchase_price', 'current_sale_price')
     def _compute_calculated_new_price(self):
-        """Bereken de nieuwe verkoopprijs op basis van gewenste marge"""
+        """Bereken de nieuwe verkoopprijs op basis van gewenste marge
+        
+        Voor percentage < 100%: Marge formule (winst als % van verkoop)
+          verkoopprijs = inkoopprijs / (1 - marge% / 100)
+          Voorbeeld: 25% marge op €100 inkoop -> €100 / 0.75 = €133.33
+        
+        Voor percentage ≥ 100%: Markup formule (winst als % van inkoop)
+          verkoopprijs = inkoopprijs × (1 + marge% / 100)
+          Voorbeeld: 200% markup op €100 inkoop -> €100 × 3 = €300
+        """
         for wizard in self:
             if wizard.current_purchase_price and wizard.requested_margin is not False:
-                wizard.calculated_new_price = wizard.current_purchase_price * (1 + wizard.requested_margin / 100)
+                if wizard.requested_margin < 100:
+                    # Normale marge formule: verkoop = inkoop / (1 - marge/100)
+                    wizard.calculated_new_price = wizard.current_purchase_price / (1 - wizard.requested_margin / 100)
+                else:
+                    # Hoge percentages: gebruik markup formule
+                    # 200% = 3x inkoopprijs, 300% = 4x inkoopprijs, etc.
+                    wizard.calculated_new_price = wizard.current_purchase_price * (1 + wizard.requested_margin / 100)
+                
                 wizard.price_difference = wizard.calculated_new_price - wizard.current_sale_price
                 
                 if wizard.current_sale_price:

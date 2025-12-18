@@ -127,14 +127,28 @@ class ProductTemplate(models.Model):
 
     @api.depends('standard_price', 'seller_ids', 'seller_ids.price', 'applicable_margin_percentage')
     def _compute_calculated_list_price(self):
-        """Bereken de verkoopprijs op basis van inkoopprijs en marge"""
+        """Bereken de verkoopprijs op basis van inkoopprijs en marge
+        
+        Voor percentage < 100%: Marge formule (winst als % van verkoop)
+          verkoopprijs = inkoopprijs / (1 - marge% / 100)
+          Voorbeeld: 25% marge op €100 inkoop -> €100 / 0.75 = €133.33
+        
+        Voor percentage ≥ 100%: Markup formule (winst als % van inkoop)
+          verkoopprijs = inkoopprijs × (1 + marge% / 100)
+          Voorbeeld: 200% markup op €100 inkoop -> €100 × 3 = €300
+        """
         for product in self:
             # Gebruik helper method om juiste inkoopprijs te krijgen
             purchase_price = product._get_purchase_price()
             
             if purchase_price and product.applicable_margin_percentage:
-                # Bereken verkoopprijs: inkoopprijs * (1 + marge/100)
-                product.calculated_list_price = purchase_price * (1 + product.applicable_margin_percentage / 100)
+                if product.applicable_margin_percentage < 100:
+                    # Normale marge formule: verkoop = inkoop / (1 - marge/100)
+                    product.calculated_list_price = purchase_price / (1 - product.applicable_margin_percentage / 100)
+                else:
+                    # Hoge percentages: gebruik markup formule
+                    # 200% = 3x inkoopprijs, 300% = 4x inkoopprijs, etc.
+                    product.calculated_list_price = purchase_price * (1 + product.applicable_margin_percentage / 100)
             else:
                 product.calculated_list_price = purchase_price
 
