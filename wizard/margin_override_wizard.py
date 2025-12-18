@@ -99,10 +99,11 @@ class MarginOverrideWizard(models.TransientModel):
             if wizard.product_id.seller_ids:
                 # Neem de eerste (goedkoopste/belangrijkste) leverancier
                 supplier = wizard.product_id.seller_ids[0]
-                purchase_price = supplier.price
+                if supplier.price and supplier.price > 0:
+                    purchase_price = supplier.price
             
             # Als geen leveranciersprijs, gebruik standard_price
-            if not purchase_price:
+            if not purchase_price or purchase_price == 0:
                 purchase_price = wizard.product_id.standard_price
             
             wizard.current_purchase_price = purchase_price
