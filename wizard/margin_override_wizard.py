@@ -43,9 +43,10 @@ class MarginOverrideWizard(models.TransientModel):
     
     # Berekende velden
     current_purchase_price = fields.Float(
-        related='product_id.standard_price',
         string='Huidige Inkoopprijs',
-        readonly=True
+        compute='_compute_current_purchase_price',
+        readonly=True,
+        help='Inkoopprijs (eerst van leverancier, anders standard_price)'
     )
     current_sale_price = fields.Float(
         related='product_id.list_price',
@@ -78,6 +79,24 @@ class MarginOverrideWizard(models.TransientModel):
         string='Goedgekeurd',
         default=False
     )
+
+    @api.depends('product_id', 'product_id.standard_price', 'product_id.seller_ids')
+    def _compute_current_purchase_price(self):
+        """Bepaal de huidige inkoopprijs: eerst van leverancier, anders standard_price"""
+        for wizard in self:
+            purchase_price = 0.0
+            
+            # Probeer eerst leveranciersprijs te krijgen
+            if wizard.product_id.seller_ids:
+                # Neem de eerste (goedkoopste/belangrijkste) leverancier
+                supplier = wizard.product_id.seller_ids[0]
+                purchase_price = supplier.price
+            
+            # Als geen leveranciersprijs, gebruik standard_price
+            if not purchase_price:
+                purchase_price = wizard.product_id.standard_price
+            
+            wizard.current_purchase_price = purchase_price
 
     @api.depends('requested_margin', 'current_purchase_price', 'current_sale_price')
     def _compute_calculated_new_price(self):

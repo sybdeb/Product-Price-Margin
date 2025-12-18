@@ -125,15 +125,30 @@ class ProductTemplate(models.Model):
             else:
                 product.applicable_margin_percentage = 0.0
 
-    @api.depends('standard_price', 'applicable_margin_percentage')
+    @api.depends('standard_price', 'seller_ids', 'seller_ids.price', 'applicable_margin_percentage')
     def _compute_calculated_list_price(self):
         """Bereken de verkoopprijs op basis van inkoopprijs en marge"""
         for product in self:
-            if product.standard_price and product.applicable_margin_percentage:
+            # Gebruik helper method om juiste inkoopprijs te krijgen
+            purchase_price = product._get_purchase_price()
+            
+            if purchase_price and product.applicable_margin_percentage:
                 # Bereken verkoopprijs: inkoopprijs * (1 + marge/100)
-                product.calculated_list_price = product.standard_price * (1 + product.applicable_margin_percentage / 100)
+                product.calculated_list_price = purchase_price * (1 + product.applicable_margin_percentage / 100)
             else:
-                product.calculated_list_price = product.standard_price
+                product.calculated_list_price = purchase_price
+
+    def _get_purchase_price(self):
+        """Helper: bepaal de inkoopprijs (eerst van leverancier, anders standard_price)"""
+        self.ensure_one()
+        
+        # Probeer eerst leveranciersprijs te krijgen
+        if self.seller_ids:
+            # Neem de eerste (goedkoopste/belangrijkste) leverancier
+            return self.seller_ids[0].price
+        
+        # Als geen leveranciersprijs, gebruik standard_price
+        return self.standard_price
 
     @api.depends('use_custom_margin', 'margin_override_approved', 'margin_override_end_date')
     def _compute_margin_deviation(self):
