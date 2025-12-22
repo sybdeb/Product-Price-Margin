@@ -58,15 +58,6 @@ class MarginOverrideWizard(models.TransientModel):
         compute='_compute_calculated_new_price',
         help='De verkoopprijs die resulteert uit de gewenste marge'
     )
-    manual_price = fields.Float(
-        string='Handmatige Verkoopprijs',
-        help='Vul hier handmatig een verkoopprijs in om de berekende prijs te overschrijven'
-    )
-    final_price = fields.Float(
-        string='Toe te Passen Verkoopprijs',
-        compute='_compute_final_price',
-        help='De prijs die uiteindelijk wordt toegepast (handmatig of berekend)'
-    )
     price_difference = fields.Float(
         string='Prijsverschil',
         compute='_compute_calculated_new_price',
@@ -99,40 +90,20 @@ class MarginOverrideWizard(models.TransientModel):
             if wizard.product_id.seller_ids:
                 # Neem de eerste (goedkoopste/belangrijkste) leverancier
                 supplier = wizard.product_id.seller_ids[0]
-                if supplier.price and supplier.price > 0:
-                    purchase_price = supplier.price
+                purchase_price = supplier.price
             
             # Als geen leveranciersprijs, gebruik standard_price
-            if not purchase_price or purchase_price == 0:
+            if not purchase_price:
                 purchase_price = wizard.product_id.standard_price
             
             wizard.current_purchase_price = purchase_price
 
     @api.depends('requested_margin', 'current_purchase_price', 'current_sale_price')
     def _compute_calculated_new_price(self):
-        """Bereken de nieuwe verkoopprijs op basis van gewenste marge
-        
-        Voor percentage < 100%: Marge formule (winst als % van verkoop)
-          verkoopprijs = inkoopprijs / (1 - marge% / 100)
-          Voorbeeld: 25% marge op €100 inkoop -> €100 / 0.75 = €133.33
-        
-        Voor percentage ≥ 100%: Markup formule (winst als % van inkoop)
-          verkoopprijs = inkoopprijs × (1 + marge% / 100)
-          Voorbeeld: 200% markup op €100 inkoop -> €100 × 3 = €300
-        """
+        """Bereken de nieuwe verkoopprijs op basis van gewenste marge"""
         for wizard in self:
             if wizard.current_purchase_price and wizard.requested_margin is not False:
-                # requested_margin wordt ingevoerd als percentage (25 = 25%)
-                # maar opgeslagen als decimaal (0.25)
-                margin_decimal = wizard.requested_margin / 100 if wizard.requested_margin >= 1 else wizard.requested_margin
-                
-                if margin_decimal < 1.0:
-                    # Normale marge formule: verkoop = inkoop / (1 - marge)
-                    wizard.calculated_new_price = wizard.current_purchase_price / (1 - margin_decimal)
-                else:
-                    # Hoge percentages: gebruik markup formule
-                    wizard.calculated_new_price = wizard.current_purchase_price * (1 + margin_decimal)
-                
+                wizard.calculated_new_price = wizard.current_purchase_price * (1 + wizard.requested_margin / 100)
                 wizard.price_difference = wizard.calculated_new_price - wizard.current_sale_price
                 
                 if wizard.current_sale_price:
@@ -143,15 +114,6 @@ class MarginOverrideWizard(models.TransientModel):
                 wizard.calculated_new_price = 0.0
                 wizard.price_difference = 0.0
                 wizard.price_difference_percentage = 0.0
-
-    @api.depends('manual_price', 'calculated_new_price')
-    def _compute_final_price(self):
-        """Bepaal de uiteindelijk toe te passen prijs: handmatig of berekend"""
-        for wizard in self:
-            if wizard.manual_price and wizard.manual_price > 0:
-                wizard.final_price = wizard.manual_price
-            else:
-                wizard.final_price = wizard.calculated_new_price
 
     @api.constrains('requested_margin')
     def _check_requested_margin(self):
@@ -207,9 +169,9 @@ class MarginOverrideWizard(models.TransientModel):
             )
         )
         
-        # Pas de finale prijs direct toe (handmatig of berekend)
-        if self.final_price:
-            self.product_id.list_price = self.final_price
+        # Optioneel: pas de berekende prijs direct toe
+        if self.calculated_new_price:
+            self.product_id.list_price = self.calculated_new_price
         
         return {
             'type': 'ir.actions.client',
