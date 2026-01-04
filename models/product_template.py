@@ -139,16 +139,84 @@ class ProductTemplate(models.Model):
                 product.calculated_list_price = purchase_price
 
     def _get_purchase_price(self):
-        """Helper: bepaal de inkoopprijs (eerst van leverancier, anders standard_price)"""
+        """Helper: bepaal de inkoopprijs
+        
+        Logica:
+        1. Eigen voorraad > 0 → voorraadwaarde / qty
+        2. Anders → seller_ids[0] (laagste sequence = voorkeur leverancier)
+        3. Fallback → standard_price
+        """
         self.ensure_one()
         
-        # Probeer eerst leveranciersprijs te krijgen
-        if self.seller_ids:
-            # Neem de eerste (goedkoopste/belangrijkste) leverancier
-            return self.seller_ids[0].price
+        # Check eerst of er eigen voorraad is
+        if hasattr(self, 'qty_available') and self.qty_available > 0:
+            if hasattr(self, 'stock_value') and self.stock_value > 0:
+                return self.stock_value / self.qty_available
         
-        # Als geen leveranciersprijs, gebruik standard_price
-        return self.standard_price
+        # Gebruik voorkeur leverancier (laagste sequence = eerste actieve)
+        active_suppliers = self.seller_ids.filtered(lambda s: s.active and s.price > 0)
+        if active_suppliers:
+            preferred = active_suppliers.sorted('sequence')[0]
+            return preferred.price
+        
+        # Fallback naar standard_price
+        return self.standard_price or 0.0
+    
+    def update_supplier_sequences(self):
+        """Update leverancier sequences op basis van marge configuratie regels"""
+        self.ensure_one()
+        
+        if not self.margin_config_id or not self.seller_ids:
+            return
+            
+        config = self.margin_config_id
+        
+        # Filter alleen actieve leveranciers met prijs
+        active_suppliers = self.seller_ids.filtered(lambda s: s.active and s.price > 0)
+        
+        if not active_suppliers:
+            # Geen actieve leveranciers: archiveer product
+            if self.seller_ids and all(not s.active for s in self.seller_ids):
+                self.active = False
+            return
+        
+        # Selecteer op basis van configuratie mode
+        if config.supplier_selection_mode == 'manual':
+            # Handmatig: bewaar huidige sequence, doe niets
+            return
+        
+        suitable_suppliers = active_suppliers
+        
+        if config.supplier_selection_mode == 'auto_price_stock':
+            # Filter op minimale voorraad
+            with_stock = active_suppliers.filtered(
+                lambda s: s.supplier_stock >= config.min_stock_threshold
+            )
+            
+            if with_stock:
+                suitable_suppliers = with_stock
+            elif not config.fallback_no_stock:
+                # Geen fallback: gebruik alleen suppliers met voldoende voorraad
+                suitable_suppliers = with_stock
+        
+        if not suitable_suppliers:
+            return
+        
+        # Sorteer met tie-breaker logica
+        def sort_key(supplier):
+            if config.supplier_tiebreaker == 'stock':
+                return (supplier.price, -supplier.supplier_stock, supplier.delay, supplier.id)
+            elif config.supplier_tiebreaker == 'delivery':
+                return (supplier.price, supplier.delay, -supplier.supplier_stock, supplier.id)
+            else:  # keep
+                return (supplier.price, supplier.sequence, supplier.id)
+        
+        sorted_suppliers = sorted(suitable_suppliers, key=sort_key)
+        
+        # Update sequences (alleen als gewijzigd om write triggers te vermijden)
+        for index, supplier in enumerate(sorted_suppliers, start=1):
+            if supplier.sequence != index:
+                supplier.sequence = index
 
     @api.depends('use_custom_margin', 'margin_override_approved', 'margin_override_end_date')
     def _compute_margin_deviation(self):

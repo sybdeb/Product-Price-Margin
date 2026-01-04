@@ -44,13 +44,22 @@
                                    options="{'currency_field': 'currency_id'}" readonly="1"/>
                         </group>
                         <group string="Inkoopprijs Bron">
-                            <field name="preferred_supplier_id" options="{'no_create': True}"/>
-                            <field name="use_manual_preferred_supplier"/>
                             <label for="qty_available" string="Eigen Voorraad"/>
                             <div>
                                 <field name="qty_available" class="oe_inline"/> stuks
                                 <span class="text-muted" invisible="qty_available &lt;= 0"> (gebruikt voorraad inkoopwaarde)</span>
                             </div>
+                            <label for="seller_ids" string="Leveranciers (sortering = voorkeur)"/>
+                            <field name="seller_ids" nolabel="1" mode="tree">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="partner_id"/>
+                                    <field name="price" widget="monetary"/>
+                                    <field name="supplier_stock"/>
+                                    <field name="delay"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </tree>
+                            </field>
                         </group>
                     </group>
                     <group>

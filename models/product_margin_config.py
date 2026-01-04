@@ -43,6 +43,33 @@ class ProductMarginConfig(models.Model):
         help='Marge percentage dat wordt toegepast op de inkoopprijs'
     )
     
+    # Supplier selectie configuratie
+    supplier_selection_mode = fields.Selection([
+        ('auto_price', 'Goedkoopste prijs'),
+        ('auto_price_stock', 'Goedkoopste met minimale voorraad'),
+        ('manual', 'Handmatig per product (sequence behouden)'),
+    ], default='auto_price_stock', string='Leverancier Selectie', required=True,
+        help='Bepaal hoe de voorkeur leverancier automatisch geselecteerd wordt')
+    
+    min_stock_threshold = fields.Integer(
+        string='Minimale Voorraad',
+        default=5,
+        help='Alleen leveranciers met minimaal dit aantal op voorraad (bij auto_price_stock mode)'
+    )
+    
+    fallback_no_stock = fields.Boolean(
+        string='Fallback naar geen voorraad',
+        default=True,
+        help='Als geen leverancier voldoende voorraad, kies dan goedkoopste zonder voorraadcheck'
+    )
+    
+    supplier_tiebreaker = fields.Selection([
+        ('stock', 'Hoogste voorraad eerst'),
+        ('delivery', 'Kortste levertijd eerst'),
+        ('keep', 'Huidige volgorde behouden'),
+    ], default='stock', string='Bij gelijke prijs',
+        help='Wat te doen als meerdere leveranciers dezelfde prijs hebben')
+    
     # Computed velden voor display
     brand_name = fields.Char(related='brand_id.name', string='Merk', store=False)  # Odoo19: stored related translated fields not supported
 

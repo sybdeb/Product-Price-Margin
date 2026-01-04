@@ -10,24 +10,18 @@ class ProductSupplierinfo(models.Model):
         """Trigger herberekening van productprijs als leveranciersprijs wijzigt"""
         result = super(ProductSupplierinfo, self).write(vals)
         
-        # Als de prijs wijzigt, trigger herberekening van het product
-        if 'price' in vals:
-            for supplier in self:
-                if supplier.active and supplier.product_tmpl_id:
-                    # Forceer herberekening door computed fields te triggeren
-                    supplier.product_tmpl_id._compute_calculated_list_price()
-                    # Als er een prijs is, pas die automatisch toe
-                    if supplier.product_tmpl_id.calculated_list_price:
-                        supplier.product_tmpl_id.list_price = supplier.product_tmpl_id.calculated_list_price
-        
-        # Als leverancier wordt gearchiveerd, herbereken voorkeur leverancier
-        if 'active' in vals:
+        # Als prijs, voorraad of active wijzigt, update sequences en herbereken prijs
+        if any(field in vals for field in ['price', 'supplier_stock', 'active']):
             for supplier in self:
                 if supplier.product_tmpl_id:
-                    supplier.product_tmpl_id._compute_preferred_supplier()
-                    # Check of product gearchiveerd moet worden
-                    if supplier.product_tmpl_id.seller_ids and all(not s.active for s in supplier.product_tmpl_id.seller_ids):
-                        supplier.product_tmpl_id.active = False
+                    # Update supplier sequences op basis van config regels
+                    supplier.product_tmpl_id.update_supplier_sequences()
+                    
+                    # Herbereken productprijs
+                    if supplier.active:
+                        supplier.product_tmpl_id._compute_calculated_list_price()
+                        if supplier.product_tmpl_id.calculated_list_price:
+                            supplier.product_tmpl_id.list_price = supplier.product_tmpl_id.calculated_list_price
         
         return result
 
@@ -37,9 +31,14 @@ class ProductSupplierinfo(models.Model):
         records = super(ProductSupplierinfo, self).create(vals_list)
         
         for supplier in records:
-            if supplier.product_tmpl_id and supplier.price:
-                supplier.product_tmpl_id._compute_calculated_list_price()
-                if supplier.product_tmpl_id.calculated_list_price:
-                    supplier.product_tmpl_id.list_price = supplier.product_tmpl_id.calculated_list_price
+            if supplier.product_tmpl_id:
+                # Update sequences
+                supplier.product_tmpl_id.update_supplier_sequences()
+                
+                # Herbereken prijs
+                if supplier.price and supplier.active:
+                    supplier.product_tmpl_id._compute_calculated_list_price()
+                    if supplier.product_tmpl_id.calculated_list_price:
+                        supplier.product_tmpl_id.list_price = supplier.product_tmpl_id.calculated_list_price
         
         return records

@@ -38,6 +38,16 @@
                             <field name="margin_percentage" widget="percentage"/>
                         </group>
                     </group>
+                    <group string="Leverancier Selectie">
+                        <group>
+                            <field name="supplier_selection_mode" widget="radio"/>
+                            <field name="min_stock_threshold" invisible="supplier_selection_mode != 'auto_price_stock'"/>
+                            <field name="fallback_no_stock" invisible="supplier_selection_mode != 'auto_price_stock'"/>
+                        </group>
+                        <group>
+                            <field name="supplier_tiebreaker" invisible="supplier_selection_mode == 'manual'"/>
+                        </group>
+                    </group>
                     <group>
                         <group>
                             <field name="brand_id" invisible="config_type != 'brand'" required="config_type == 'brand'"/>
