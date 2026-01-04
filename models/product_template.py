@@ -256,6 +256,13 @@ class ProductTemplate(models.Model):
             else:
                 product.margin_deviation_warning = False
 
+    def action_recalculate_price(self):
+        """Forceer herberekening van de verkoopprijs"""
+        for product in self:
+            # Trigger herberekening door computed velden opnieuw te berekenen
+            product._compute_margin_config()
+            product._compute_calculated_list_price()
+
     def action_apply_calculated_price(self):
         """Pas de berekende prijs toe als verkoopprijs"""
         for product in self:
