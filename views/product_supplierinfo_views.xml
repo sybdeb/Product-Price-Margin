@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Product Supplierinfo Tree View met Sequence Handle -->
+    <record id="product_supplierinfo_tree_view_inherit" model="ir.ui.view">
+        <field name="name">product.supplierinfo.tree.inherit.sequence</field>
+        <field name="model">product.supplierinfo</field>
+        <field name="inherit_id" ref="product.product_supplierinfo_tree_view"/>
+        <field name="arch" type="xml">
+            <!-- Voeg sequence handle toe aan het begin -->
+            <xpath expr="//tree" position="attributes">
+                <attribute name="editable">bottom</attribute>
+            </xpath>
+            <xpath expr="//tree/field[@name='partner_id']" position="before">
+                <field name="sequence" widget="handle"/>
+            </xpath>
+            <!-- Voeg active toggle toe aan het eind -->
+            <xpath expr="//tree/field[last()]" position="after">
+                <field name="active" widget="boolean_toggle" optional="show"/>
+                <field name="supplier_stock" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
