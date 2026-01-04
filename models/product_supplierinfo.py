@@ -10,15 +10,15 @@ class ProductSupplierinfo(models.Model):
         """Trigger herberekening van productprijs als leveranciersprijs wijzigt"""
         result = super(ProductSupplierinfo, self).write(vals)
         
-        # Als prijs, voorraad of active wijzigt, update sequences en herbereken prijs
-        if any(field in vals for field in ['price', 'supplier_stock', 'active']):
+        # Als prijs of voorraad wijzigt, update sequences en herbereken prijs
+        if any(field in vals for field in ['price', 'supplier_stock']):
             for supplier in self:
                 if supplier.product_tmpl_id:
                     # Update supplier sequences op basis van config regels
                     supplier.product_tmpl_id.update_supplier_sequences()
                     
                     # Herbereken productprijs
-                    if supplier.active:
+                    if supplier.price > 0:
                         supplier.product_tmpl_id._compute_calculated_list_price()
                         if supplier.product_tmpl_id.calculated_list_price:
                             supplier.product_tmpl_id.list_price = supplier.product_tmpl_id.calculated_list_price
@@ -36,7 +36,7 @@ class ProductSupplierinfo(models.Model):
                 supplier.product_tmpl_id.update_supplier_sequences()
                 
                 # Herbereken prijs
-                if supplier.price and supplier.active:
+                if supplier.price > 0:
                     supplier.product_tmpl_id._compute_calculated_list_price()
                     if supplier.product_tmpl_id.calculated_list_price:
                         supplier.product_tmpl_id.list_price = supplier.product_tmpl_id.calculated_list_price

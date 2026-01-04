@@ -11,10 +11,9 @@
             <field name="partner_id" position="before">
                 <field name="sequence" widget="handle"/>
             </field>
-            <!-- Voeg active en stock toe -->
+            <!-- Voeg stock toe -->
             <field name="price" position="after">
                 <field name="supplier_stock" optional="show"/>
-                <field name="active" widget="boolean_toggle" optional="show"/>
             </field>
         </field>
     </record>

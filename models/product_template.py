@@ -153,10 +153,10 @@ class ProductTemplate(models.Model):
             if hasattr(self, 'stock_value') and self.stock_value > 0:
                 return self.stock_value / self.qty_available
         
-        # Gebruik voorkeur leverancier (laagste sequence = eerste actieve)
-        active_suppliers = self.seller_ids.filtered(lambda s: s.active and s.price > 0)
-        if active_suppliers:
-            preferred = active_suppliers.sorted('sequence')[0]
+        # Gebruik voorkeur leverancier (laagste sequence = eerste met prijs)
+        suppliers_with_price = self.seller_ids.filtered(lambda s: s.price > 0)
+        if suppliers_with_price:
+            preferred = suppliers_with_price.sorted('sequence')[0]
             return preferred.price
         
         # Fallback naar standard_price
@@ -171,13 +171,10 @@ class ProductTemplate(models.Model):
             
         config = self.margin_config_id
         
-        # Filter alleen actieve leveranciers met prijs
-        active_suppliers = self.seller_ids.filtered(lambda s: s.active and s.price > 0)
+        # Filter alleen leveranciers met prijs
+        suppliers_with_price = self.seller_ids.filtered(lambda s: s.price > 0)
         
-        if not active_suppliers:
-            # Geen actieve leveranciers: archiveer product
-            if self.seller_ids and all(not s.active for s in self.seller_ids):
-                self.active = False
+        if not suppliers_with_price:
             return
         
         # Selecteer op basis van configuratie mode

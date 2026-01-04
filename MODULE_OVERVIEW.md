@@ -73,7 +73,6 @@ def action_request_margin_override(self)
 
 #### Toegevoegde Velden:
 - `supplier_stock` (Integer) - Voorraad bij leverancier
-- `active` (Boolean) - Leverancier actief/gearchiveerd
 
 #### Methoden Override:
 
@@ -82,7 +81,6 @@ def write(self, vals)
     """Trigger price/sequence update bij wijziging van:
     - price
     - supplier_stock
-    - active status
     → Roept product_template.update_supplier_sequences() aan
     """
 
@@ -237,12 +235,12 @@ else:  # Markup formule
 
 ```python
 # Auto Price Stock mode
-suitable_suppliers = active_suppliers.filtered(
+suitable_suppliers = suppliers_with_price.filtered(
     lambda s: s.supplier_stock >= config.min_stock_threshold
 )
 
 if not suitable_suppliers and config.fallback_no_stock:
-    suitable_suppliers = active_suppliers  # Fallback
+    suitable_suppliers = suppliers_with_price  # Fallback
 
 # Sorteer met tie-breaker
 if config.supplier_tiebreaker == 'stock':
@@ -300,13 +298,6 @@ for supplier in product.seller_ids:
 # Sequences worden automatisch bijgewerkt
 ```
 
-**5. Leveranciers wil archiveren:**
-```python
-# Inactieve leverancier
-supplier.active = False
-# → Product wordt gearchiveerd als alle leveranciers inactive
-```
-
 ---
 
 ## 🔗 Dependencies
@@ -360,7 +351,7 @@ SELECT pt.name, pt.list_price, pt.calculated_list_price,
 FROM product_template pt WHERE id = 12;
 
 -- Check leverancier sequences
-SELECT si.sequence, rp.name, si.price, si.supplier_stock, si.active
+SELECT si.sequence, rp.name, si.price, si.supplier_stock
 FROM product_supplierinfo si 
 JOIN res_partner rp ON si.partner_id = rp.id
 WHERE si.product_tmpl_id = 12
@@ -374,8 +365,8 @@ ORDER BY si.sequence;
 1. **Marges zijn decimalen:** 25% wordt opgeslagen als `0.25` (niet als `25`)
 2. **Sequence = voorkeur:** Laagste sequence (1) = voorkeursleverancier
 3. **Auto-updates:** Leverancier wijzigingen triggeren automatisch sequence updates
-4. **Archivering:** Product wordt auto-gearchiveerd als alle leveranciers inactive zijn
-5. **Computed fields:** `calculated_list_price` en `applicable_margin_percentage` zijn read-only
+4. **Computed fields:** `calculated_list_price` en `applicable_margin_percentage` zijn read-only
+5. **Prijs = actief:** Leveranciers zonder prijs (price = 0) worden genegeerd bij selectie
 
 ---
 
