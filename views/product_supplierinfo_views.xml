@@ -8,17 +8,14 @@
         <field name="inherit_id" ref="product.product_supplierinfo_tree_view"/>
         <field name="arch" type="xml">
             <!-- Voeg sequence handle toe aan het begin -->
-            <xpath expr="//tree" position="attributes">
-                <attribute name="editable">bottom</attribute>
-            </xpath>
-            <xpath expr="//tree/field[@name='partner_id']" position="before">
+            <field name="partner_id" position="before">
                 <field name="sequence" widget="handle"/>
-            </xpath>
-            <!-- Voeg active toggle toe aan het eind -->
-            <xpath expr="//tree/field[last()]" position="after">
-                <field name="active" widget="boolean_toggle" optional="show"/>
+            </field>
+            <!-- Voeg active en stock toe -->
+            <field name="price" position="after">
                 <field name="supplier_stock" optional="show"/>
-            </xpath>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </field>
         </field>
     </record>
 
