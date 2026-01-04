@@ -23,9 +23,7 @@
                 
                 <group string="Berekende Nieuwe Prijzen">
                     <group>
-                        <field name="calculated_new_price" widget="monetary" readonly="1"/>
-                        <field name="manual_price" widget="monetary" placeholder="Optioneel: vul handmatig in om berekening te overschrijven"/>
-                        <field name="final_price" widget="monetary" readonly="1" class="fw-bold"/>
+                        <field name="calculated_new_price" widget="monetary" readonly="1" class="fw-bold"/>
                     </group>
                     <group>
                         <field name="price_difference" widget="monetary" 
