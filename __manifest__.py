@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Product Price Margin',
-    'version': '19.0.1.0.12',
+    'version': '19.0.1.0.13',
     'category': 'Sales',
     'summary': 'Automatische verkoopprijs berekening op basis van inkoopprijs en marge',
     'description': """

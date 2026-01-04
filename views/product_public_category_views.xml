@@ -9,7 +9,20 @@
         <field name="arch" type="xml">
             <xpath expr="//form/sheet" position="inside">
                 <group string="Marge Configuratie" groups="base.group_user">
-                    <field name="margin_percentage" widget="percentage"/>
+                    <group>
+                        <field name="margin_percentage" widget="percentage"/>
+                    </group>
+                </group>
+                
+                <group string="Leverancier Selectie" groups="base.group_user">
+                    <group>
+                        <field name="supplier_selection_mode" widget="radio"/>
+                        <field name="min_stock_threshold" invisible="supplier_selection_mode != 'auto_price_stock'"/>
+                        <field name="fallback_no_stock" invisible="supplier_selection_mode != 'auto_price_stock'"/>
+                    </group>
+                    <group>
+                        <field name="supplier_tiebreaker" invisible="supplier_selection_mode == 'manual'"/>
+                    </group>
                 </group>
             </xpath>
         </field>

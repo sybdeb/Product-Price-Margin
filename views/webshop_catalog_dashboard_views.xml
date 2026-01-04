@@ -55,6 +55,26 @@
                     </div>
                 </div>
 
+                <!-- Marge Configuraties -->
+                <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fa fa-cogs fa-2x text-primary me-3"/>
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-0">Marge &amp; Leveranciers</h5>
+                                    <p class="text-muted mb-0">Configureer per categorie</p>
+                                </div>
+                            </div>
+                            <button name="action_view_margin_configs" 
+                                    type="object" 
+                                    class="btn btn-primary btn-sm w-100">
+                                Configureer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </xpath>
         </field>
     </record>

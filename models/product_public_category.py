@@ -33,6 +33,32 @@ class ProductPublicCategory(models.Model):
         compute='_compute_margin_config',
         store=True
     )
+    
+    # Supplier selection settings (related from margin_config)
+    supplier_selection_mode = fields.Selection(
+        related='margin_config_id.supplier_selection_mode',
+        string='Leverancier Selectie Modus',
+        readonly=False,
+        store=True
+    )
+    min_stock_threshold = fields.Integer(
+        related='margin_config_id.min_stock_threshold',
+        string='Minimale Voorraad',
+        readonly=False,
+        store=True
+    )
+    fallback_no_stock = fields.Boolean(
+        related='margin_config_id.fallback_no_stock',
+        string='Fallback naar Geen Voorraad',
+        readonly=False,
+        store=True
+    )
+    supplier_tiebreaker = fields.Selection(
+        related='margin_config_id.supplier_tiebreaker',
+        string='Tie-breaker',
+        readonly=False,
+        store=True
+    )
 
     @api.depends('margin_percentage')
     def _compute_margin_config(self):
